@@ -1,0 +1,2097 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Borang dengan Reset Kesalahan Bulanan</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f0f4f8;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            border-radius: 10px;
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            margin-bottom: 10px;
+            font-size: 2.2rem;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .notification-alert {
+            background-color: #fff3cd;
+            border-left: 5px solid #ff9800;
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            display: none;
+        }
+
+        .notification-alert.show {
+            display: flex;
+            animation: pulse 2s infinite;
+        }
+
+        .notification-alert.warning {
+            background-color: #fff3cd;
+            border-left-color: #ff9800;
+        }
+
+        .notification-alert.danger {
+            background-color: #f8d7da;
+            border-left-color: #dc3545;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(255, 152, 0, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(255, 152, 0, 0); }
+        }
+
+        .alert-content {
+            flex-grow: 1;
+        }
+
+        .alert-title {
+            font-weight: bold;
+            color: #d84315;
+            margin-bottom: 5px;
+        }
+
+        .close-alert {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .app-layout {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .form-section {
+            flex: 1;
+            min-width: 400px;
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .monitor-section {
+            flex: 2;
+            min-width: 500px;
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .section-title {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #3498db;
+            display: flex;
+            align-items: center;
+        }
+
+        .section-title i {
+            margin-right: 10px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+            font-size: 0.95rem;
+        }
+
+        .required::after {
+            content: " *";
+            color: #e74c3c;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            transition: border 0.3s;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+
+        .suggestions {
+            position: absolute;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 100;
+            width: 100%;
+            display: none;
+        }
+
+        .suggestion-item {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #eee;
+        }
+
+        .suggestion-item:hover {
+            background-color: #f5f5f5;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        .btn-secondary {
+            background-color: #2ecc71;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #27ae60;
+            transform: translateY(-2px);
+        }
+
+        .btn-warning {
+            background-color: #f39c12;
+            color: white;
+        }
+
+        .btn-warning:hover {
+            background-color: #d68910;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #c0392b;
+            transform: translateY(-2px);
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+            flex-wrap: wrap;
+        }
+
+        .search-filter {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .search-box, .filter-box {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+
+        th {
+            background-color: #2c3e50;
+            color: white;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        .agent-multiple-5 {
+            background-color: #fff9e6 !important;
+            border-left: 4px solid #ff9800;
+        }
+
+        .agent-multiple-10 {
+            background-color: #ffeaa7 !important;
+            border-left: 4px solid #f39c12;
+        }
+
+        .agent-multiple-15 {
+            background-color: #fab1a0 !important;
+            border-left: 4px solid #e74c3c;
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 6px 12px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            transition: all 0.2s;
+        }
+
+        .edit-btn {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .edit-btn:hover {
+            background-color: #2980b9;
+        }
+
+        .delete-btn {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .delete-btn:hover {
+            background-color: #c0392b;
+        }
+
+        .view-btn {
+            background-color: #2ecc71;
+            color: white;
+        }
+
+        .view-btn:hover {
+            background-color: #27ae60;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #7f8c8d;
+        }
+
+        .empty-state i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            color: #bdc3c7;
+        }
+
+        .stats-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-value {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .total-borang {
+            color: #3498db;
+        }
+
+        .total-kompaun {
+            color: #2ecc71;
+        }
+
+        .gandaan-5 {
+            color: #e74c3c;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+
+        .agent-stats {
+            margin-top: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .agent-stats h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .agent-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+        }
+
+        .agent-item {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .agent-name {
+            font-weight: bold;
+        }
+
+        .agent-count {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .agent-count.multiple-5 {
+            color: #e74c3c;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            color: #7f8c8d;
+            font-size: 14px;
+            border-top: 1px solid #eee;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .modal-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .detail-item {
+            margin-bottom: 15px;
+        }
+
+        .detail-label {
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 5px;
+        }
+
+        .detail-value {
+            padding: 8px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            border-left: 3px solid #3498db;
+        }
+
+        .status-paid {
+            color: #27ae60;
+            font-weight: bold;
+        }
+
+        .status-unpaid {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        .status-pending {
+            color: #f39c12;
+            font-weight: bold;
+        }
+
+        .status-none {
+            color: #7f8c8d;
+            font-weight: bold;
+        }
+
+        .input-with-suggestions {
+            position: relative;
+        }
+
+        .monthly-report {
+            margin-top: 20px;
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .monthly-report h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+
+        .monthly-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+        }
+
+        .month-stat-item {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+
+        .month-stat-label {
+            font-weight: bold;
+            color: #555;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .month-stat-value {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .reset-info {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #e8f4fc;
+            border-left: 4px solid #3498db;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            color: #2c3e50;
+        }
+
+        @media (max-width: 768px) {
+            .app-layout {
+                flex-direction: column;
+            }
+            
+            .form-section, .monitor-section {
+                min-width: 100%;
+            }
+            
+            .form-actions {
+                flex-direction: column;
+            }
+            
+            .action-btns {
+                flex-direction: column;
+            }
+            
+            .agent-list {
+                grid-template-columns: 1fr;
+            }
+            
+            .monthly-stats {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-exclamation-triangle"></i> REKOD PERMOHONAN PINDAAN BORANG KASTAM ZPB KARGO MAS</h1>
+            <p class="subtitle">Borang ini adalah untuk merekod pindaan yang dipohon oleh ejen KASTAM</p>
+        </header>
+
+        <div class="notification-alert warning" id="notificationAlert">
+            <div class="alert-content">
+                <div class="alert-title"><i class="fas fa-bell"></i> PEMBERITAHUAN: AGENT MENCAPAI GANDAAN 5 KESALAHAN</div>
+                <div id="alertMessage">Agent telah mencapai gandaan 5 kesalahan untuk bulan ini. Sila maklumkan kepada Pegawai Kanan.</div>
+            </div>
+            <button class="close-alert" id="closeAlert">&times;</button>
+        </div>
+
+        <div class="stats-container">
+            <div class="stat-card">
+                <div class="stat-value total-borang" id="totalBorang">0</div>
+                <div class="stat-label">Jumlah Borang</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value total-kompaun" id="totalKompaun">RM 0</div>
+                <div class="stat-label">Jumlah Nilai Kompaun</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value gandaan-5" id="gandaan5Count">0</div>
+                <div class="stat-label">Agent Gandaan 5 (Bulan Ini)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="currentMonth">-</div>
+                <div class="stat-label">Bulan Semasa</div>
+            </div>
+        </div>
+
+        <div class="reset-info">
+            <i class="fas fa-info-circle"></i> <strong>Sistem Reset Bulanan:</strong> Jumlah kesalahan setiap agent akan direset kepada 0 pada bulan baru. Pemberitahuan gandaan 5 juga berdasarkan jumlah bulan semasa.
+        </div>
+
+        <div class="agent-stats">
+            <h3><i class="fas fa-chart-bar"></i> Statistik Kesalahan Bulan Ini Mengikut Agent</h3>
+            <div class="agent-list" id="agentList">
+                <!-- Statistik agent akan dimasukkan melalui JavaScript -->
+            </div>
+        </div>
+
+        <div class="app-layout">
+            <div class="form-section">
+                <h2 class="section-title"><i class="fas fa-edit"></i> Isi Borang Baru</h2>
+                <form id="borangForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="bilangan" class="required"><i class="fas fa-hashtag"></i> Bilangan (Auto)</label>
+                            <input type="text" id="bilangan" name="bilangan" readonly style="background-color:#f5f5f5;">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="tarikhKejadian" class="required"><i class="fas fa-calendar-day"></i> Tarikh Kejadian</label>
+                            <input type="date" id="tarikhKejadian" name="tarikhKejadian" required>
+                        </div>
+                        
+                        <div class="form-group input-with-suggestions">
+                            <label for="namaAgent" class="required"><i class="fas fa-user-tie"></i> Nama Agent</label>
+                            <input type="text" id="namaAgent" name="namaAgent" placeholder="Masukkan nama agent" required autocomplete="off">
+                            <div class="suggestions" id="agentSuggestions"></div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="noBorang" class="required"><i class="fas fa-file-alt"></i> No. Borang</label>
+                            <input type="text" id="noBorang" name="noBorang" placeholder="Contoh: B/2023/001" required>
+                        </div>
+                        
+                        <div class="form-group input-with-suggestions">
+                            <label for="jenisPindaan" class="required"><i class="fas fa-exchange-alt"></i> Jenis Pindaan</label>
+                            <input type="text" id="jenisPindaan" name="jenisPindaan" placeholder="Masukkan jenis pindaan" required autocomplete="off">
+                            <div class="suggestions" id="pindaanSuggestions"></div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="nilaiKompaun"><i class="fas fa-money-bill-wave"></i> Nilai Kompaun (RM)</label>
+                            <input type="number" id="nilaiKompaun" name="nilaiKompaun" min="0" step="0.01" placeholder="0.00 (tidak wajib)">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="noRujukanKompaun"><i class="fas fa-receipt"></i> No. Rujukan Kompaun</label>
+                            <input type="text" id="noRujukanKompaun" name="noRujukanKompaun" placeholder="Contoh: K/2023/001">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="statusBayaran"><i class="fas fa-credit-card"></i> Status Bayaran</label>
+                            <select id="statusBayaran" name="statusBayaran">
+                                <option value="">Pilih Status (jika ada)</option>
+                                <option value="Belum Bayar">Belum Bayar</option>
+                                <option value="Sudah Bayar">Sudah Bayar</option>
+                                <option value="Dalam Proses">Dalam Proses</option>
+                                <option value="Tidak Perlu Bayar">Tidak Perlu Bayar</option>
+                                <option value="Dibatalkan">Dibatalkan</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="namaPegawaiKanan" class="required"><i class="fas fa-user-shield"></i> Nama Pegawai Kanan</label>
+                            <input type="text" id="namaPegawaiKanan" name="namaPegawaiKanan" placeholder="Nama pegawai bertanggungjawab" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save"></i> Simpan Borang
+                        </button>
+                        <button type="button" id="resetBtn" class="btn btn-danger">
+                            <i class="fas fa-eraser"></i> Set Semula
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="monitor-section">
+                <h2 class="section-title"><i class="fas fa-list-alt"></i> Pemantauan Borang</h2>
+                
+                <div class="search-filter">
+                    <div class="search-box">
+                        <label for="search"><i class="fas fa-search"></i> Cari</label>
+                        <input type="text" id="search" placeholder="Cari mengikut nama agent, no. borang, no. rujukan...">
+                    </div>
+                    <div class="filter-box">
+                        <label for="filterAgent"><i class="fas fa-user-tie"></i> Tapis Mengikut Agent</label>
+                        <select id="filterAgent">
+                            <option value="">Semua Agent</option>
+                        </select>
+                    </div>
+                    <div class="filter-box">
+                        <label for="filterBulan"><i class="fas fa-calendar-alt"></i> Tapis Mengikut Bulan</label>
+                        <select id="filterBulan">
+                            <option value="">Semua Bulan</option>
+                            <!-- Pilihan bulan akan diisi melalui JavaScript -->
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="monthly-report" id="monthlyReport" style="display: none;">
+                    <h3><i class="fas fa-chart-line"></i> Statistik Bulanan</h3>
+                    <div class="monthly-stats" id="monthlyStats">
+                        <!-- Statistik bulanan akan diisi melalui JavaScript -->
+                    </div>
+                </div>
+                
+                <div class="table-container">
+                    <table id="borangTable">
+                        <thead>
+                            <tr>
+                                <th>BIL</th>
+                                <th>Tarikh Kejadian</th>
+                                <th>Nama Agent</th>
+                                <th>Jumlah Kesalahan (Bulan Ini)</th>
+                                <th>No. Borang</th>
+                                <th>Jenis Pindaan</th>
+                                <th>Nilai Kompaun (RM)</th>
+                                <th>Status</th>
+                                <th>Tindakan</th>
+                            </tr>
+                        </thead>
+                        <tbody id="borangTableBody">
+                            <!-- Data akan dimasukkan melalui JavaScript -->
+                        </tbody>
+                    </table>
+                    <div id="emptyState" class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <h3>Tiada Borang Direkodkan</h3>
+                        <p>Mulakan dengan mengisi borang pertama anda.</p>
+                    </div>
+                </div>
+                
+                <div class="form-actions" style="margin-top: 20px; justify-content: flex-end;">
+                    <button id="exportBtn" class="btn btn-secondary">
+                        <i class="fas fa-file-export"></i> Eksport ke CSV
+                    </button>
+                    <button id="printBtn" class="btn btn-warning">
+                        <i class="fas fa-print"></i> Cetak Laporan
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <footer>
+            <p>Sistem Borang dengan Reset Kesalahan Bulanan &copy; 2023 | Jumlah kesalahan direset setiap bulan baru</p>
+        </footer>
+    </div>
+
+    <!-- Modal untuk lihat butiran lengkap -->
+    <div class="modal" id="detailModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-file-invoice"></i> Butiran Lengkap Borang</h2>
+                <button class="close-modal" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-details" id="modalDetails">
+                <!-- Butiran akan diisi melalui JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data storage using localStorage
+        const STORAGE_KEY = 'borangKompaunData';
+        const NOTIFICATION_KEY = 'notifikasiAgentBulanan';
+        const AGENT_SUGGESTIONS_KEY = 'agentSuggestions';
+        const PINDAAN_SUGGESTIONS_KEY = 'pindaanSuggestions';
+        
+        let borangData = [];
+        let editIndex = -1;
+        let agentMonthlyNotifications = {}; // Notifikasi untuk setiap agent setiap bulan
+        let agentSuggestions = [];
+        let pindaanSuggestions = [];
+
+        // DOM elements
+        const borangForm = document.getElementById('borangForm');
+        const borangTableBody = document.getElementById('borangTableBody');
+        const emptyState = document.getElementById('emptyState');
+        const searchInput = document.getElementById('search');
+        const filterAgent = document.getElementById('filterAgent');
+        const filterBulan = document.getElementById('filterBulan');
+        const resetBtn = document.getElementById('resetBtn');
+        const exportBtn = document.getElementById('exportBtn');
+        const printBtn = document.getElementById('printBtn');
+        const notificationAlert = document.getElementById('notificationAlert');
+        const alertMessage = document.getElementById('alertMessage');
+        const closeAlert = document.getElementById('closeAlert');
+        const detailModal = document.getElementById('detailModal');
+        const closeModal = document.getElementById('closeModal');
+        const modalDetails = document.getElementById('modalDetails');
+        const agentList = document.getElementById('agentList');
+        const namaAgentInput = document.getElementById('namaAgent');
+        const jenisPindaanInput = document.getElementById('jenisPindaan');
+        const agentSuggestionsEl = document.getElementById('agentSuggestions');
+        const pindaanSuggestionsEl = document.getElementById('pindaanSuggestions');
+        const monthlyReport = document.getElementById('monthlyReport');
+        const monthlyStats = document.getElementById('monthlyStats');
+        const currentMonthEl = document.getElementById('currentMonth');
+        
+        // Stat elements
+        const totalBorangEl = document.getElementById('totalBorang');
+        const totalKompaunEl = document.getElementById('totalKompaun');
+        const gandaan5CountEl = document.getElementById('gandaan5Count');
+
+        // Set default date to today
+        document.getElementById('tarikhKejadian').valueAsDate = new Date();
+
+        // Get current month in Bahasa Malaysia format
+        function getCurrentMonth() {
+            const now = new Date();
+            const monthNames = [
+                'Januari', 'Februari', 'Mac', 'April', 'Mei', 'Jun',
+                'Julai', 'Ogos', 'September', 'Oktober', 'November', 'Disember'
+            ];
+            return `${monthNames[now.getMonth()]} ${now.getFullYear()}`;
+        }
+
+        // Load data from localStorage on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            loadData();
+            updateBilanganField();
+            renderTable();
+            updateStats();
+            updateAgentList();
+            populateAgentFilter();
+            populateMonthFilter();
+            
+            // Update current month display
+            currentMonthEl.textContent = getCurrentMonth();
+            
+            // Setup suggestions
+            setupSuggestions();
+        });
+
+        // Load data from localStorage
+        function loadData() {
+            const storedData = localStorage.getItem(STORAGE_KEY);
+            if (storedData) {
+                borangData = JSON.parse(storedData);
+            }
+            
+            // Load agent monthly notifications
+            const storedNotifications = localStorage.getItem(NOTIFICATION_KEY);
+            if (storedNotifications) {
+                agentMonthlyNotifications = JSON.parse(storedNotifications);
+            }
+            
+            // Load suggestions
+            const storedAgentSuggestions = localStorage.getItem(AGENT_SUGGESTIONS_KEY);
+            if (storedAgentSuggestions) {
+                agentSuggestions = JSON.parse(storedAgentSuggestions);
+            }
+            
+            const storedPindaanSuggestions = localStorage.getItem(PINDAAN_SUGGESTIONS_KEY);
+            if (storedPindaanSuggestions) {
+                pindaanSuggestions = JSON.parse(storedPindaanSuggestions);
+            }
+        }
+
+        // Save data to localStorage
+        function saveData() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(borangData));
+            localStorage.setItem(NOTIFICATION_KEY, JSON.stringify(agentMonthlyNotifications));
+            updateStats();
+            updateAgentList();
+            populateAgentFilter();
+            populateMonthFilter();
+        }
+
+        // Save suggestions
+        function saveSuggestions() {
+            localStorage.setItem(AGENT_SUGGESTIONS_KEY, JSON.stringify(agentSuggestions));
+            localStorage.setItem(PINDAAN_SUGGESTIONS_KEY, JSON.stringify(pindaanSuggestions));
+        }
+
+        // Setup suggestion functionality
+        function setupSuggestions() {
+            // Agent suggestions
+            namaAgentInput.addEventListener('input', function() {
+                const value = this.value.toLowerCase();
+                if (value.length < 2) {
+                    agentSuggestionsEl.style.display = 'none';
+                    return;
+                }
+                
+                // Get unique agents from existing data
+                const agentCounts = getAgentCountsForCurrentMonth();
+                const existingAgents = Object.keys(agentCounts);
+                
+                // Combine with saved suggestions
+                const allSuggestions = [...new Set([...existingAgents, ...agentSuggestions])];
+                
+                const filtered = allSuggestions.filter(agent => 
+                    agent.toLowerCase().includes(value)
+                );
+                
+                showSuggestions(filtered, agentSuggestionsEl, namaAgentInput);
+            });
+            
+            // Jenis pindaan suggestions
+            jenisPindaanInput.addEventListener('input', function() {
+                const value = this.value.toLowerCase();
+                if (value.length < 2) {
+                    pindaanSuggestionsEl.style.display = 'none';
+                    return;
+                }
+                
+                // Get unique pindaans from existing data
+                const existingPindaans = [...new Set(borangData.map(b => b.jenisPindaan))];
+                
+                // Combine with saved suggestions
+                const allSuggestions = [...new Set([...existingPindaans, ...pindaanSuggestions])];
+                
+                const filtered = allSuggestions.filter(pindaan => 
+                    pindaan.toLowerCase().includes(value)
+                );
+                
+                showSuggestions(filtered, pindaanSuggestionsEl, jenisPindaanInput);
+            });
+            
+            // Close suggestions when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.input-with-suggestions')) {
+                    agentSuggestionsEl.style.display = 'none';
+                    pindaanSuggestionsEl.style.display = 'none';
+                }
+            });
+        }
+
+        // Show suggestions
+        function showSuggestions(items, container, inputElement) {
+            if (items.length === 0) {
+                container.style.display = 'none';
+                return;
+            }
+            
+            container.innerHTML = items.map(item => 
+                `<div class="suggestion-item">${item}</div>`
+            ).join('');
+            
+            container.style.display = 'block';
+            
+            // Add click handlers
+            container.querySelectorAll('.suggestion-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    inputElement.value = this.textContent;
+                    container.style.display = 'none';
+                });
+            });
+        }
+
+        // Update statistics
+        function updateStats() {
+            totalBorangEl.textContent = borangData.length;
+            
+            // Calculate total kompaun (only for borang with nilaiKompaun)
+            const totalKompaun = borangData.reduce((sum, borang) => {
+                const nilai = parseFloat(borang.nilaiKompaun || 0);
+                return sum + (isNaN(nilai) ? 0 : nilai);
+            }, 0);
+            totalKompaunEl.textContent = `RM ${totalKompaun.toFixed(2)}`;
+            
+            // Count agents with multiple of 5 violations in current month
+            const agentCounts = getAgentCountsForCurrentMonth();
+            const gandaan5Agents = Object.values(agentCounts).filter(count => count >= 5).length;
+            gandaan5CountEl.textContent = gandaan5Agents;
+        }
+
+        // Get agent violation counts for current month
+        function getAgentCountsForCurrentMonth() {
+            return getAgentCountsForMonth(getCurrentMonth());
+        }
+
+        // Get agent violation counts for specific month
+        function getAgentCountsForMonth(monthYear) {
+            const agentCounts = {};
+            const [monthName, year] = monthYear.split(' ');
+            
+            const monthNames = {
+                'Januari': '01', 'Februari': '02', 'Mac': '03', 'April': '04', 
+                'Mei': '05', 'Jun': '06', 'Julai': '07', 'Ogos': '08', 
+                'September': '09', 'Oktober': '10', 'November': '11', 'Disember': '12'
+            };
+            
+            const monthNumber = monthNames[monthName];
+            const yearMonth = `${year}-${monthNumber}`;
+            
+            borangData.forEach(borang => {
+                const borangDate = new Date(borang.tarikhKejadian);
+                const borangYear = borangDate.getFullYear().toString();
+                const borangMonth = (borangDate.getMonth() + 1).toString().padStart(2, '0');
+                const borangYearMonth = `${borangYear}-${borangMonth}`;
+                
+                if (borangYearMonth === yearMonth) {
+                    const agent = borang.namaAgent;
+                    agentCounts[agent] = (agentCounts[agent] || 0) + 1;
+                }
+            });
+            
+            return agentCounts;
+        }
+
+        // Get agent violation counts for month of a specific borang
+        function getAgentCountsForBorangMonth(borang) {
+            const borangDate = new Date(borang.tarikhKejadian);
+            const monthNames = [
+                'Januari', 'Februari', 'Mac', 'April', 'Mei', 'Jun',
+                'Julai', 'Ogos', 'September', 'Oktober', 'November', 'Disember'
+            ];
+            const monthYear = `${monthNames[borangDate.getMonth()]} ${borangDate.getFullYear()}`;
+            return getAgentCountsForMonth(monthYear);
+        }
+
+        // Update agent list display for current month
+        function updateAgentList() {
+            const agentCounts = getAgentCountsForCurrentMonth();
+            
+            // Sort agents by violation count (descending)
+            const sortedAgents = Object.entries(agentCounts)
+                .sort((a, b) => b[1] - a[1]);
+            
+            if (sortedAgents.length === 0) {
+                agentList.innerHTML = `
+                    <div style="text-align: center; padding: 20px; color: #7f8c8d;">
+                        <i class="fas fa-chart-bar" style="font-size: 24px; margin-bottom: 10px;"></i>
+                        <p>Tiada kesalahan direkodkan untuk bulan ini.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            agentList.innerHTML = sortedAgents.map(([agent, count]) => {
+                const isMultipleOf5 = count % 5 === 0 && count >= 5;
+                const isMultipleOf10 = count % 10 === 0 && count >= 10;
+                const isMultipleOf15 = count % 15 === 0 && count >= 15;
+                
+                let warningClass = '';
+                if (isMultipleOf15) warningClass = 'multiple-5';
+                else if (isMultipleOf10) warningClass = 'multiple-5';
+                else if (isMultipleOf5) warningClass = 'multiple-5';
+                
+                let warningText = '';
+                if (isMultipleOf15) warningText = ` (GANDAAN 15!)`;
+                else if (isMultipleOf10) warningText = ` (GANDAAN 10!)`;
+                else if (isMultipleOf5) warningText = ` (GANDAAN 5!)`;
+                
+                return `
+                    <div class="agent-item">
+                        <div class="agent-name">${agent}</div>
+                        <div class="agent-count ${warningClass}">${count} kesalahan${warningText}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Update bilangan field (auto increment)
+        function updateBilanganField() {
+            const nextBilangan = borangData.length > 0 ? 
+                Math.max(...borangData.map(b => b.bilangan)) + 1 : 1;
+            document.getElementById('bilangan').value = nextBilangan;
+        }
+
+        // Populate month filter dropdown
+        function populateMonthFilter() {
+            // Get unique months from data
+            const months = [...new Set(borangData.map(borang => {
+                const date = new Date(borang.tarikhKejadian);
+                const monthNames = [
+                    'Januari', 'Februari', 'Mac', 'April', 'Mei', 'Jun',
+                    'Julai', 'Ogos', 'September', 'Oktober', 'November', 'Disember'
+                ];
+                return `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+            }))].sort((a, b) => {
+                // Sort by date (most recent first)
+                const [monthA, yearA] = a.split(' ');
+                const [monthB, yearB] = b.split(' ');
+                if (yearA !== yearB) return parseInt(yearB) - parseInt(yearA);
+                
+                const monthNames = {
+                    'Januari': 1, 'Februari': 2, 'Mac': 3, 'April': 4, 'Mei': 5, 'Jun': 6,
+                    'Julai': 7, 'Ogos': 8, 'September': 9, 'Oktober': 10, 'November': 11, 'Disember': 12
+                };
+                return monthNames[monthB] - monthNames[monthA];
+            });
+            
+            filterBulan.innerHTML = '<option value="">Semua Bulan</option>';
+            months.forEach(month => {
+                const option = document.createElement('option');
+                option.value = month;
+                option.textContent = month;
+                filterBulan.appendChild(option);
+            });
+        }
+
+        // Populate agent filter dropdown
+        function populateAgentFilter() {
+            const agentCounts = getAgentCountsForCurrentMonth();
+            const agents = Object.keys(agentCounts).sort();
+            
+            filterAgent.innerHTML = '<option value="">Semua Agent</option>';
+            agents.forEach(agent => {
+                const count = agentCounts[agent];
+                const isMultipleOf5 = count % 5 === 0 && count >= 5;
+                const optionText = isMultipleOf5 ? `${agent} (${count} kesalahan - GANDAAN ${count % 15 === 0 ? '15' : count % 10 === 0 ? '10' : '5'}!)` : `${agent} (${count} kesalahan)`;
+                
+                const option = document.createElement('option');
+                option.value = agent;
+                option.textContent = optionText;
+                filterAgent.appendChild(option);
+            });
+        }
+
+        // Check for multiple of 5 and show notification (monthly reset)
+        function checkMultipleOf5Notification(agentName, agentViolationCount, monthYear) {
+            // Check if agent has reached a new multiple of 5 in this month
+            if (agentViolationCount >= 5 && agentViolationCount % 5 === 0) {
+                // Get the last notified count for this agent in this month
+                const key = `${agentName}-${monthYear}`;
+                const lastNotifiedCount = agentMonthlyNotifications[key] || 0;
+                
+                // Only notify if this is a new multiple of 5 that we haven't notified yet
+                if (agentViolationCount > lastNotifiedCount) {
+                    // Update the last notified count
+                    agentMonthlyNotifications[key] = agentViolationCount;
+                    
+                    // Show notification
+                    let severity = "warning";
+                    let icon = "fa-exclamation-triangle";
+                    
+                    if (agentViolationCount >= 15) {
+                        severity = "danger";
+                        icon = "fa-radiation";
+                    } else if (agentViolationCount >= 10) {
+                        severity = "danger";
+                        icon = "fa-skull-crossbones";
+                    }
+                    
+                    alertMessage.innerHTML = `
+                        <strong>AGENT: ${agentName}</strong><br>
+                        Telah mencapai <strong>${agentViolationCount} kesalahan</strong> untuk bulan ${monthYear} (Gandaan ${agentViolationCount % 15 === 0 ? '15' : agentViolationCount % 10 === 0 ? '10' : '5'})<br>
+                        <strong>PEMBERITAHUAN:</strong> Agent ini menunjukkan corak kesalahan berulang yang membimbangkan untuk bulan ini.<br>
+                        <strong>TINDAKAN:</strong> Sila maklumkan kepada Pegawai Kanan untuk siasatan dan tindakan kompaun yang sewajarnya.
+                    `;
+                    
+                    // Update notification alert style
+                    notificationAlert.className = `notification-alert ${severity} show`;
+                    notificationAlert.querySelector('.alert-title i').className = `fas ${icon}`;
+                    
+                    // Play notification sound
+                    playNotificationSound();
+                    
+                    // Auto hide after 30 seconds
+                    setTimeout(() => {
+                        notificationAlert.classList.remove('show');
+                    }, 30000);
+                    
+                    saveData();
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // Play notification sound
+        function playNotificationSound() {
+            try {
+                // Create audio context for notification sound
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // Create a more urgent sound for multiple of 5
+                const oscillator1 = audioContext.createOscillator();
+                const oscillator2 = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator1.connect(gainNode);
+                oscillator2.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator1.frequency.value = 800;
+                oscillator2.frequency.value = 1200;
+                oscillator1.type = 'sine';
+                oscillator2.type = 'sine';
+                
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1.5);
+                
+                oscillator1.start(audioContext.currentTime);
+                oscillator2.start(audioContext.currentTime);
+                oscillator1.stop(audioContext.currentTime + 1.5);
+                oscillator2.stop(audioContext.currentTime + 1.5);
+            } catch (e) {
+                console.log("Audio notification not supported");
+            }
+        }
+
+        // Form submission handler
+        borangForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const bilangan = parseInt(document.getElementById('bilangan').value);
+            const tarikhKejadian = document.getElementById('tarikhKejadian').value;
+            const namaAgent = document.getElementById('namaAgent').value.trim();
+            const noBorang = document.getElementById('noBorang').value.trim();
+            const jenisPindaan = document.getElementById('jenisPindaan').value.trim();
+            const nilaiKompaun = document.getElementById('nilaiKompaun').value;
+            const noRujukanKompaun = document.getElementById('noRujukanKompaun').value.trim();
+            const statusBayaran = document.getElementById('statusBayaran').value;
+            const namaPegawaiKanan = document.getElementById('namaPegawaiKanan').value.trim();
+            
+            // Validate form (nilaiKompaun tidak wajib)
+            if (!tarikhKejadian || !namaAgent || !noBorang || !jenisPindaan || !namaPegawaiKanan) {
+                alert('Sila isi semua bidang yang wajib!');
+                return;
+            }
+            
+            // Check for duplicate form number (only if adding new, not editing)
+            if (editIndex === -1 && borangData.some(borang => borang.noBorang === noBorang)) {
+                alert('Nombor borang ini sudah wujud! Sila gunakan nombor lain.');
+                return;
+            }
+            
+            // Parse nilaiKompaun if provided, otherwise set to 0
+            let parsedNilaiKompaun = 0;
+            if (nilaiKompaun && nilaiKompaun.trim() !== '') {
+                parsedNilaiKompaun = parseFloat(nilaiKompaun);
+                if (isNaN(parsedNilaiKompaun)) {
+                    alert('Nilai kompaun tidak sah. Sila masukkan nombor yang sah.');
+                    return;
+                }
+            }
+            
+            const borang = {
+                bilangan,
+                tarikhKejadian,
+                namaAgent,
+                noBorang,
+                jenisPindaan,
+                nilaiKompaun: parsedNilaiKompaun.toFixed(2),
+                noRujukanKompaun: noRujukanKompaun || `K/${new Date().getFullYear()}/${String(bilangan).padStart(3, '0')}`,
+                statusBayaran: statusBayaran || 'Tidak Dinyatakan',
+                namaPegawaiKanan,
+                tarikhDicipta: new Date().toISOString()
+            };
+            
+            if (editIndex === -1) {
+                // Add new form
+                borangData.push(borang);
+            } else {
+                // Update existing form
+                borangData[editIndex] = borang;
+                editIndex = -1;
+                document.querySelector('.btn-primary i').className = 'fas fa-save';
+                document.querySelector('.btn-primary').innerHTML = '<i class="fas fa-save"></i> Simpan Borang';
+            }
+            
+            // Add to suggestions
+            if (!agentSuggestions.includes(namaAgent) && namaAgent.trim() !== '') {
+                agentSuggestions.push(namaAgent);
+            }
+            
+            if (!pindaanSuggestions.includes(jenisPindaan) && jenisPindaan.trim() !== '') {
+                pindaanSuggestions.push(jenisPindaan);
+            }
+            
+            saveData();
+            saveSuggestions();
+            renderTable();
+            borangForm.reset();
+            document.getElementById('tarikhKejadian').valueAsDate = new Date();
+            updateBilanganField();
+            
+            // Check for multiple of 5 notification for this agent in this month
+            const borangDate = new Date(tarikhKejadian);
+            const monthNames = [
+                'Januari', 'Februari', 'Mac', 'April', 'Mei', 'Jun',
+                'Julai', 'Ogos', 'September', 'Oktober', 'November', 'Disember'
+            ];
+            const monthYear = `${monthNames[borangDate.getMonth()]} ${borangDate.getFullYear()}`;
+            
+            const agentCounts = getAgentCountsForMonth(monthYear);
+            const agentViolationCount = agentCounts[namaAgent] || 0;
+            checkMultipleOf5Notification(namaAgent, agentViolationCount, monthYear);
+        });
+
+        // Render table with data
+        function renderTable() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const selectedAgent = filterAgent.value;
+            const selectedBulan = filterBulan.value;
+            
+            // Filter data based on search and filters
+            let filteredData = borangData.filter(borang => {
+                const matchesSearch = 
+                    borang.namaAgent.toLowerCase().includes(searchTerm) || 
+                    borang.noBorang.toLowerCase().includes(searchTerm) ||
+                    borang.jenisPindaan.toLowerCase().includes(searchTerm) ||
+                    (borang.noRujukanKompaun && borang.noRujukanKompaun.toLowerCase().includes(searchTerm));
+                
+                const matchesAgent = !selectedAgent || borang.namaAgent === selectedAgent;
+                
+                // Check for month filter
+                let matchesMonth = true;
+                if (selectedBulan) {
+                    const borangDate = new Date(borang.tarikhKejadian);
+                    const monthNames = [
+                        'Januari', 'Februari', 'Mac', 'April', 'Mei', 'Jun',
+                        'Julai', 'Ogos', 'September', 'Oktober', 'November', 'Disember'
+                    ];
+                    const borangMonthYear = `${monthNames[borangDate.getMonth()]} ${borangDate.getFullYear()}`;
+                    matchesMonth = borangMonthYear === selectedBulan;
+                }
+                
+                return matchesSearch && matchesAgent && matchesMonth;
+            });
+            
+            // Sort by date (descending - newest first)
+            filteredData.sort((a, b) => new Date(b.tarikhDicipta) - new Date(a.tarikhDicipta));
+            
+            // Update monthly report
+            updateMonthlyReport(selectedBulan, filteredData);
+            
+            // If no data, show empty state
+            if (filteredData.length === 0) {
+                emptyState.style.display = 'block';
+                borangTableBody.innerHTML = '';
+            } else {
+                emptyState.style.display = 'none';
+                
+                // Get agent counts for selected month (or for each borang's month if no filter)
+                let agentCountsForDisplay = {};
+                
+                if (selectedBulan) {
+                    // If month filter is selected, use counts for that month
+                    agentCountsForDisplay = getAgentCountsForMonth(selectedBulan);
+                }
+                
+                // Generate table rows
+                borangTableBody.innerHTML = filteredData.map((borang) => {
+                    // Find original index in borangData for editing
+                    const originalIndex = borangData.findIndex(item => 
+                        item.bilangan === borang.bilangan
+                    );
+                    
+                    // Get agent violation count
+                    let agentViolationCount;
+                    if (selectedBulan) {
+                        // Use counts for selected month
+                        agentViolationCount = agentCountsForDisplay[borang.namaAgent] || 0;
+                    } else {
+                        // Use counts for borang's month
+                        const agentCountsForBorangMonth = getAgentCountsForBorangMonth(borang);
+                        agentViolationCount = agentCountsForBorangMonth[borang.namaAgent] || 0;
+                    }
+                    
+                    // Determine row class based on agent violation count
+                    let rowClass = '';
+                    if (agentViolationCount >= 15 && agentViolationCount % 15 === 0) {
+                        rowClass = 'agent-multiple-15';
+                    } else if (agentViolationCount >= 10 && agentViolationCount % 10 === 0) {
+                        rowClass = 'agent-multiple-10';
+                    } else if (agentViolationCount >= 5 && agentViolationCount % 5 === 0) {
+                        rowClass = 'agent-multiple-5';
+                    }
+                    
+                    // Determine status color
+                    let statusClass = '';
+                    if (borang.statusBayaran === 'Sudah Bayar') statusClass = 'status-paid';
+                    else if (borang.statusBayaran === 'Belum Bayar') statusClass = 'status-unpaid';
+                    else if (borang.statusBayaran === 'Dalam Proses') statusClass = 'status-pending';
+                    else if (borang.statusBayaran === 'Tidak Perlu Bayar') statusClass = 'status-none';
+                    else if (borang.statusBayaran === 'Dibatalkan') statusClass = 'status-none';
+                    else statusClass = 'status-none';
+                    
+                    // Create warning icon for multiple of 5
+                    let warningIcon = '';
+                    if (agentViolationCount >= 5 && agentViolationCount % 5 === 0) {
+                        warningIcon = `<i class="fas fa-exclamation-triangle" style="color:#e74c3c; margin-left:5px;" title="Agent ini mempunyai ${agentViolationCount} kesalahan untuk bulan ini (Gandaan ${agentViolationCount % 15 === 0 ? '15' : agentViolationCount % 10 === 0 ? '10' : '5'})"></i>`;
+                    }
+                    
+                    // Format nilai kompaun (show "Tiada" if 0)
+                    let nilaiKompaunDisplay = 'Tiada';
+                    if (parseFloat(borang.nilaiKompaun) > 0) {
+                        nilaiKompaunDisplay = `RM ${parseFloat(borang.nilaiKompaun).toFixed(2)}`;
+                    }
+                    
+                    return `
+                        <tr class="${rowClass}">
+                            <td>${borang.bilangan}</td>
+                            <td>${formatDate(borang.tarikhKejadian)}</td>
+                            <td>${borang.namaAgent} ${warningIcon}</td>
+                            <td><strong>${agentViolationCount}</strong></td>
+                            <td><strong>${borang.noBorang}</strong></td>
+                            <td>${borang.jenisPindaan}</td>
+                            <td>${nilaiKompaunDisplay}</td>
+                            <td><span class="${statusClass}">${borang.statusBayaran || 'Tidak Dinyatakan'}</span></td>
+                            <td>
+                                <div class="action-btns">
+                                    <button class="action-btn view-btn" onclick="viewDetails(${originalIndex})">
+                                        <i class="fas fa-eye"></i> Lihat
+                                    </button>
+                                    <button class="action-btn edit-btn" onclick="editBorang(${originalIndex})">
+                                        <i class="fas fa-edit"></i> Edit
+                                    </button>
+                                    <button class="action-btn delete-btn" onclick="deleteBorang(${originalIndex})">
+                                        <i class="fas fa-trash"></i> Padam
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
+                }).join('');
+            }
+        }
+
+        // Update monthly report
+        function updateMonthlyReport(selectedMonth, filteredData) {
+            if (selectedMonth && filteredData.length > 0) {
+                monthlyReport.style.display = 'block';
+                
+                // Calculate statistics for the selected month
+                const monthData = borangData.filter(borang => {
+                    const borangDate = new Date(borang.tarikhKejadian);
+                    const monthNames = [
+                        'Januari', 'Februari', 'Mac', 'April', 'Mei', 'Jun',
+                        'Julai', 'Ogos', 'September', 'Oktober', 'November', 'Disember'
+                    ];
+                    const borangMonthYear = `${monthNames[borangDate.getMonth()]} ${borangDate.getFullYear()}`;
+                    return borangMonthYear === selectedMonth;
+                });
+                
+                const totalBorang = monthData.length;
+                const totalKompaun = monthData.reduce((sum, borang) => {
+                    const nilai = parseFloat(borang.nilaiKompaun || 0);
+                    return sum + (isNaN(nilai) ? 0 : nilai);
+                }, 0);
+                const unpaidCount = monthData.filter(b => b.statusBayaran === 'Belum Bayar').length;
+                const paidCount = monthData.filter(b => b.statusBayaran === 'Sudah Bayar').length;
+                const noPaymentCount = monthData.filter(b => b.statusBayaran === 'Tidak Perlu Bayar').length;
+                
+                // Get unique agents for the month
+                const uniqueAgents = [...new Set(monthData.map(b => b.namaAgent))];
+                
+                // Get agent with most violations
+                const agentCounts = getAgentCountsForMonth(selectedMonth);
+                
+                let topAgent = 'Tiada';
+                let topAgentCount = 0;
+                Object.entries(agentCounts).forEach(([agent, count]) => {
+                    if (count > topAgentCount) {
+                        topAgentCount = count;
+                        topAgent = agent;
+                    }
+                });
+                
+                monthlyStats.innerHTML = `
+                    <div class="month-stat-item">
+                        <div class="month-stat-label">Jumlah Borang</div>
+                        <div class="month-stat-value">${totalBorang}</div>
+                    </div>
+                    <div class="month-stat-item">
+                        <div class="month-stat-label">Jumlah Kompaun</div>
+                        <div class="month-stat-value">RM ${totalKompaun.toFixed(2)}</div>
+                    </div>
+                    <div class="month-stat-item">
+                        <div class="month-stat-label">Belum Bayar</div>
+                        <div class="month-stat-value">${unpaidCount}</div>
+                    </div>
+                    <div class="month-stat-item">
+                        <div class="month-stat-label">Sudah Bayar</div>
+                        <div class="month-stat-value">${paidCount}</div>
+                    </div>
+                    <div class="month-stat-item">
+                        <div class="month-stat-label">Tidak Perlu Bayar</div>
+                        <div class="month-stat-value">${noPaymentCount}</div>
+                    </div>
+                    <div class="month-stat-item">
+                        <div class="month-stat-label">Jumlah Agent</div>
+                        <div class="month-stat-value">${uniqueAgents.length}</div>
+                    </div>
+                    <div class="month-stat-item">
+                        <div class="month-stat-label">Agent Terbanyak Kesalahan</div>
+                        <div class="month-stat-value">${topAgent} (${topAgentCount})</div>
+                    </div>
+                `;
+            } else {
+                monthlyReport.style.display = 'none';
+            }
+        }
+
+        // View borang details
+        window.viewDetails = function(index) {
+            const borang = borangData[index];
+            const agentCountsForMonth = getAgentCountsForBorangMonth(borang);
+            const agentViolationCount = agentCountsForMonth[borang.namaAgent] || 0;
+            
+            // Format nilai kompaun
+            let nilaiKompaunDisplay = 'Tiada';
+            if (parseFloat(borang.nilaiKompaun) > 0) {
+                nilaiKompaunDisplay = `RM ${parseFloat(borang.nilaiKompaun).toFixed(2)}`;
+            }
+            
+            modalDetails.innerHTML = `
+                <div class="detail-item">
+                    <div class="detail-label">Bilangan:</div>
+                    <div class="detail-value">${borang.bilangan}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Tarikh Kejadian:</div>
+                    <div class="detail-value">${formatDate(borang.tarikhKejadian)}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Tarikh Dicipta:</div>
+                    <div class="detail-value">${formatDateTime(borang.tarikhDicipta)}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Nama Agent:</div>
+                    <div class="detail-value">${borang.namaAgent}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Jumlah Kesalahan Agent Ini (Bulan Ini):</div>
+                    <div class="detail-value"><strong>${agentViolationCount}</strong> ${agentViolationCount >= 5 && agentViolationCount % 5 === 0 ? `<span style="color:#e74c3c; font-weight:bold;">(GANDAAN ${agentViolationCount % 15 === 0 ? '15' : agentViolationCount % 10 === 0 ? '10' : '5'}!)</span>` : ''}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">No. Borang:</div>
+                    <div class="detail-value">${borang.noBorang}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Jenis Pindaan:</div>
+                    <div class="detail-value">${borang.jenisPindaan}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Nilai Kompaun:</div>
+                    <div class="detail-value">${nilaiKompaunDisplay}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">No. Rujukan Kompaun:</div>
+                    <div class="detail-value">${borang.noRujukanKompaun}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Status Bayaran:</div>
+                    <div class="detail-value">${borang.statusBayaran || 'Tidak Dinyatakan'}</div>
+                </div>
+                <div class="detail-item">
+                    <div class="detail-label">Nama Pegawai Kanan:</div>
+                    <div class="detail-value">${borang.namaPegawaiKanan}</div>
+                </div>
+            `;
+            
+            detailModal.style.display = 'flex';
+        };
+
+        // Edit borang
+        window.editBorang = function(index) {
+            const borang = borangData[index];
+            
+            document.getElementById('bilangan').value = borang.bilangan;
+            document.getElementById('tarikhKejadian').value = borang.tarikhKejadian;
+            document.getElementById('namaAgent').value = borang.namaAgent;
+            document.getElementById('noBorang').value = borang.noBorang;
+            document.getElementById('jenisPindaan').value = borang.jenisPindaan;
+            document.getElementById('nilaiKompaun').value = borang.nilaiKompaun > 0 ? borang.nilaiKompaun : '';
+            document.getElementById('noRujukanKompaun').value = borang.noRujukanKompaun;
+            document.getElementById('statusBayaran').value = borang.statusBayaran;
+            document.getElementById('namaPegawaiKanan').value = borang.namaPegawaiKanan;
+            
+            editIndex = index;
+            document.querySelector('.btn-primary i').className = 'fas fa-edit';
+            document.querySelector('.btn-primary').innerHTML = '<i class="fas fa-edit"></i> Kemaskini Borang';
+            
+            // Scroll to form
+            document.querySelector('.form-section').scrollIntoView({ behavior: 'smooth' });
+        };
+
+        // Delete borang
+        window.deleteBorang = function(index) {
+            if (confirm('Adakah anda pasti ingin memadam borang ini?')) {
+                // Get agent name and month before deleting
+                const borang = borangData[index];
+                const borangDate = new Date(borang.tarikhKejadian);
+                const monthNames = [
+                    'Januari', 'Februari', 'Mac', 'April', 'Mei', 'Jun',
+                    'Julai', 'Ogos', 'September', 'Oktober', 'November', 'Disember'
+                ];
+                const monthYear = `${monthNames[borangDate.getMonth()]} ${borangDate.getFullYear()}`;
+                const agentName = borang.namaAgent;
+                
+                borangData.splice(index, 1);
+                saveData();
+                renderTable();
+                updateBilanganField();
+                
+                // Re-check agent count after deletion
+                const agentCounts = getAgentCountsForMonth(monthYear);
+                const agentViolationCount = agentCounts[agentName] || 0;
+                
+                // Update notification if agent count dropped below previously notified level
+                const key = `${agentName}-${monthYear}`;
+                if (agentMonthlyNotifications[key] && agentViolationCount < agentMonthlyNotifications[key]) {
+                    agentMonthlyNotifications[key] = agentViolationCount;
+                    saveData();
+                }
+            }
+        };
+
+        // Reset form
+        resetBtn.addEventListener('click', () => {
+            if (confirm('Adakah anda pasti ingin menetapkan semula borang?')) {
+                borangForm.reset();
+                document.getElementById('tarikhKejadian').valueAsDate = new Date();
+                editIndex = -1;
+                document.querySelector('.btn-primary i').className = 'fas fa-save';
+                document.querySelector('.btn-primary').innerHTML = '<i class="fas fa-save"></i> Simpan Borang';
+                updateBilanganField();
+            }
+        });
+
+        // Search and filter functionality
+        searchInput.addEventListener('input', renderTable);
+        filterAgent.addEventListener('change', renderTable);
+        filterBulan.addEventListener('change', renderTable);
+
+        // Close notification
+        closeAlert.addEventListener('click', () => {
+            notificationAlert.classList.remove('show');
+        });
+
+        // Close modal
+        closeModal.addEventListener('click', () => {
+            detailModal.style.display = 'none';
+        });
+
+        // Close modal when clicking outside
+        window.addEventListener('click', (e) => {
+            if (e.target === detailModal) {
+                detailModal.style.display = 'none';
+            }
+        });
+
+        // Export data to CSV
+        exportBtn.addEventListener('click', () => {
+            if (borangData.length === 0) {
+                alert('Tiada data untuk dieksport.');
+                return;
+            }
+            
+            // Define CSV headers
+            const headers = ['Bilangan', 'Tarikh Kejadian', 'Nama Agent', 'Jumlah Kesalahan (Bulan)', 'No. Borang', 'Jenis Pindaan', 
+                           'Nilai Kompaun (RM)', 'No. Rujukan Kompaun', 'Status Bayaran', 'Nama Pegawai Kanan', 'Tarikh Dicipta'];
+            
+            // Convert data to CSV rows
+            const csvRows = [
+                headers.join(','),
+                ...borangData.map(borang => {
+                    // Get agent count for the month of this borang
+                    const agentCountsForMonth = getAgentCountsForBorangMonth(borang);
+                    const agentViolationCount = agentCountsForMonth[borang.namaAgent] || 0;
+                    
+                    return [
+                        borang.bilangan,
+                        `"${formatDate(borang.tarikhKejadian)}"`,
+                        `"${borang.namaAgent}"`,
+                        agentViolationCount,
+                        `"${borang.noBorang}"`,
+                        `"${borang.jenisPindaan}"`,
+                        parseFloat(borang.nilaiKompaun) > 0 ? borang.nilaiKompaun : '0.00',
+                        `"${borang.noRujukanKompaun}"`,
+                        `"${borang.statusBayaran || 'Tidak Dinyatakan'}"`,
+                        `"${borang.namaPegawaiKanan}"`,
+                        `"${formatDateTime(borang.tarikhDicipta)}"`
+                    ].join(',');
+                })
+            ];
+            
+            // Create CSV string
+            const csvString = csvRows.join('\n');
+            
+            // Create download link
+            const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.setAttribute('href', url);
+            link.setAttribute('download', `borang-kompaun-bulanan-${new Date().toISOString().slice(0,10)}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        });
+
+        // Print report
+        printBtn.addEventListener('click', () => {
+            const printWindow = window.open('', '_blank');
+            const printDate = new Date().toLocaleDateString('ms-MY');
+            
+            // Get selected filters
+            const selectedAgent = filterAgent.value;
+            const selectedBulan = filterBulan.value;
+            
+            // Filter data
+            let dataToPrint = borangData.filter(borang => {
+                const matchesAgent = !selectedAgent || borang.namaAgent === selectedAgent;
+                
+                // Check for month filter
+                let matchesMonth = true;
+                if (selectedBulan) {
+                    const borangDate = new Date(borang.tarikhKejadian);
+                    const monthNames = [
+                        'Januari', 'Februari', 'Mac', 'April', 'Mei', 'Jun',
+                        'Julai', 'Ogos', 'September', 'Oktober', 'November', 'Disember'
+                    ];
+                    const borangMonthYear = `${monthNames[borangDate.getMonth()]} ${borangDate.getFullYear()}`;
+                    matchesMonth = borangMonthYear === selectedBulan;
+                }
+                
+                return matchesAgent && matchesMonth;
+            });
+            
+            // Sort by date (newest first)
+            dataToPrint.sort((a, b) => new Date(b.tarikhDicipta) - new Date(a.tarikhDicipta));
+            
+            // Calculate totals
+            const totalKompaun = dataToPrint.reduce((sum, borang) => {
+                const nilai = parseFloat(borang.nilaiKompaun || 0);
+                return sum + (isNaN(nilai) ? 0 : nilai);
+            }, 0);
+            const unpaidCount = dataToPrint.filter(b => b.statusBayaran === 'Belum Bayar').length;
+            const paidCount = dataToPrint.filter(b => b.statusBayaran === 'Sudah Bayar').length;
+            const noPaymentCount = dataToPrint.filter(b => b.statusBayaran === 'Tidak Perlu Bayar').length;
+            
+            // Group by agent for summary (for the selected month or all)
+            const agentsSummary = {};
+            dataToPrint.forEach(borang => {
+                if (!agentsSummary[borang.namaAgent]) {
+                    agentsSummary[borang.namaAgent] = {
+                        count: 0,
+                        totalKompaun: 0
+                    };
+                }
+                agentsSummary[borang.namaAgent].count++;
+                const nilai = parseFloat(borang.nilaiKompaun || 0);
+                agentsSummary[borang.namaAgent].totalKompaun += (isNaN(nilai) ? 0 : nilai);
+            });
+            
+            // Get agent counts for the period
+            let agentCountsForPeriod = {};
+            if (selectedBulan) {
+                agentCountsForPeriod = getAgentCountsForMonth(selectedBulan);
+            } else {
+                // For all data, we need to show counts per month
+                // We'll show the count for the current month in the table
+                const currentMonth = getCurrentMonth();
+                agentCountsForPeriod = getAgentCountsForMonth(currentMonth);
+            }
+            
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Laporan Borang Kompaun</title>
+                    <style>
+                        body { font-family: Arial, sans-serif; margin: 20px; }
+                        h1 { color: #2c3e50; text-align: center; }
+                        .report-info { margin-bottom: 20px; text-align: center; }
+                        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+                        th { background-color: #2c3e50; color: white; padding: 10px; text-align: left; }
+                        td { padding: 8px 10px; border-bottom: 1px solid #ddd; }
+                        .agent-multiple-5 { background-color: #fff9e6; }
+                        .agent-multiple-10 { background-color: #ffeaa7; }
+                        .agent-multiple-15 { background-color: #fab1a0; }
+                        .summary { margin-top: 30px; padding: 15px; background-color: #f5f5f5; }
+                        .agent-summary { margin-top: 20px; }
+                        .footer { margin-top: 30px; text-align: center; font-size: 12px; color: #666; }
+                        .page-break { page-break-before: always; }
+                        .note { font-size: 0.9rem; color: #666; margin-top: 5px; font-style: italic; }
+                    </style>
+                </head>
+                <body>
+                    <h1>Laporan Borang Kompaun</h1>
+                    <div class="report-info">
+                        <p>Tarikh Laporan: ${printDate}</p>
+                        <p>Jumlah Rekod: ${dataToPrint.length}</p>
+                        ${selectedAgent ? `<p><strong>Agent: ${selectedAgent}</strong></p>` : ''}
+                        ${selectedBulan ? `<p><strong>Bulan: ${selectedBulan}</strong></p>` : ''}
+                        <p class="note">Nota: Jumlah kesalahan ditunjukkan untuk bulan semasa/bulan yang dipilih</p>
+                    </div>
+                    
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>BIL</th>
+                                <th>Tarikh Kejadian</th>
+                                <th>Nama Agent</th>
+                                <th>Jumlah Kesalahan</th>
+                                <th>No. Borang</th>
+                                <th>Jenis Pindaan</th>
+                                <th>Nilai Kompaun (RM)</th>
+                                <th>Status Bayaran</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${dataToPrint.map((borang, index) => {
+                                // Get agent count for this borang's month or selected month
+                                let agentViolationCount = 0;
+                                if (selectedBulan) {
+                                    agentViolationCount = agentCountsForPeriod[borang.namaAgent] || 0;
+                                } else {
+                                    const agentCountsForBorangMonth = getAgentCountsForBorangMonth(borang);
+                                    agentViolationCount = agentCountsForBorangMonth[borang.namaAgent] || 0;
+                                }
+                                
+                                let rowClass = '';
+                                if (agentViolationCount >= 15 && agentViolationCount % 15 === 0) {
+                                    rowClass = 'agent-multiple-15';
+                                } else if (agentViolationCount >= 10 && agentViolationCount % 10 === 0) {
+                                    rowClass = 'agent-multiple-10';
+                                } else if (agentViolationCount >= 5 && agentViolationCount % 5 === 0) {
+                                    rowClass = 'agent-multiple-5';
+                                }
+                                
+                                let warningText = '';
+                                if (agentViolationCount >= 5 && agentViolationCount % 5 === 0) {
+                                    warningText = ` (G${agentViolationCount % 15 === 0 ? '15' : agentViolationCount % 10 === 0 ? '10' : '5'})`;
+                                }
+                                
+                                // Format nilai kompaun
+                                let nilaiKompaunDisplay = 'Tiada';
+                                if (parseFloat(borang.nilaiKompaun) > 0) {
+                                    nilaiKompaunDisplay = `RM ${parseFloat(borang.nilaiKompaun).toFixed(2)}`;
+                                }
+                                
+                                return `
+                                    <tr class="${rowClass}">
+                                        <td>${index + 1}</td>
+                                        <td>${formatDate(borang.tarikhKejadian)}</td>
+                                        <td>${borang.namaAgent}</td>
+                                        <td>${agentViolationCount}${warningText}</td>
+                                        <td>${borang.noBorang}</td>
+                                        <td>${borang.jenisPindaan}</td>
+                                        <td>${nilaiKompaunDisplay}</td>
+                                        <td>${borang.statusBayaran || 'Tidak Dinyatakan'}</td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                    
+                    <div class="summary">
+                        <h3>Ringkasan Keseluruhan</h3>
+                        <p>Jumlah Borang: ${dataToPrint.length}</p>
+                        <p>Jumlah Nilai Kompaun: RM ${totalKompaun.toFixed(2)}</p>
+                        <p>Borang Belum Bayar: ${unpaidCount}</p>
+                        <p>Borang Sudah Bayar: ${paidCount}</p>
+                        <p>Borang Tidak Perlu Bayar: ${noPaymentCount}</p>
+                        <p>Jumlah Agent: ${Object.keys(agentsSummary).length}</p>
+                    </div>
+                    
+                    <div class="agent-summary">
+                        <h3>Ringkasan Mengikut Agent ${selectedBulan ? `(${selectedBulan})` : '(Bulan Semasa)'}</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Nama Agent</th>
+                                    <th>Jumlah Borang</th>
+                                    <th>Jumlah Kompaun (RM)</th>
+                                    <th>Jumlah Kesalahan</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${Object.entries(agentsSummary).map(([agent, data]) => {
+                                    // Get agent count for the period
+                                    let agentViolationCount = 0;
+                                    if (selectedBulan) {
+                                        agentViolationCount = agentCountsForPeriod[agent] || 0;
+                                    } else {
+                                        const currentMonth = getCurrentMonth();
+                                        const currentMonthCounts = getAgentCountsForMonth(currentMonth);
+                                        agentViolationCount = currentMonthCounts[agent] || 0;
+                                    }
+                                    
+                                    return `
+                                        <tr>
+                                            <td>${agent}</td>
+                                            <td>${data.count}</td>
+                                            <td>RM ${data.totalKompaun.toFixed(2)}</td>
+                                            <td>${agentViolationCount}</td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <div class="footer">
+                        <p>Laporan ini dijana oleh Sistem Borang dengan Reset Kesalahan Bulanan</p>
+                        <p>© ${new Date().getFullYear()} - Jumlah kesalahan direset setiap bulan baru</p>
+                    </div>
+                    
+                    <script>
+                        window.onload = function() {
+                            window.print();
+                        };
+                    <\/script>
+                </body>
+                </html>
+            `);
+            
+            printWindow.document.close();
+        });
+
+        // Format date for display
+        function formatDate(dateString) {
+            const options = { year: 'numeric', month: 'short', day: 'numeric' };
+            const date = new Date(dateString);
+            return date.toLocaleDateString('ms-MY', options);
+        }
+
+        // Format date time for display
+        function formatDateTime(dateTimeString) {
+            const options = { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            };
+            const date = new Date(dateTimeString);
+            return date.toLocaleDateString('ms-MY', options);
+        }
+
+        // Add sample data if empty
+        if (!localStorage.getItem(STORAGE_KEY)) {
+            const sampleData = [];
+            const agents = ['Ahmad bin Ali', 'Siti Sarah', 'Raj Kumar', 'Lim Wei Cheng', 'Nurul Huda'];
+            const jenisPindaan = ['Kesalahan Trafik', 'Kesalahan Perbandaran', 'Kesalahan Alam Sekitar', 'Kesalahan Kesihatan', 'Kesalahan Perniagaan'];
+            const pegawai = ['Encik Zulkifli Hassan', 'Puan Norazlina Ismail', 'Encik Subramaniam', 'Puan Lee Mei Ling', 'Encik Roslan Ahmad'];
+            const statuses = ['Belum Bayar', 'Sudah Bayar', 'Dalam Proses', 'Tidak Perlu Bayar', 'Dibatalkan', ''];
+            
+            // Create sample data for current month and previous month
+            const currentDate = new Date();
+            const currentMonth = currentDate.getMonth();
+            const currentYear = currentDate.getFullYear();
+            
+            // Previous month
+            const prevMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+            const prevYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+            
+            // Create data spread across current and previous month
+            for (let i = 1; i <= 20; i++) {
+                // Distribute agents
+                let selectedAgent;
+                if (i <= 8) {
+                    selectedAgent = 'Ahmad bin Ali';
+                } else if (i <= 12) {
+                    selectedAgent = 'Siti Sarah';
+                } else if (i <= 15) {
+                    selectedAgent = 'Raj Kumar';
+                } else if (i <= 18) {
+                    selectedAgent = 'Lim Wei Cheng';
+                } else {
+                    selectedAgent = 'Nurul Huda';
+                }
+                
+                const randomJenis = jenisPindaan[Math.floor(Math.random() * jenisPindaan.length)];
+                const randomPegawai = pegawai[Math.floor(Math.random() * pegawai.length)];
+                const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+                
+                // 70% current month, 30% previous month
+                const isCurrentMonth = Math.random() < 0.7;
+                const targetMonth = isCurrentMonth ? currentMonth : prevMonth;
+                const targetYear = isCurrentMonth ? currentYear : prevYear;
+                
+                // Random day in month
+                const randomDay = 1 + Math.floor(Math.random() * 28);
+                
+                const borangDate = new Date(targetYear, targetMonth, randomDay);
+                
+                // 60% chance to have nilai kompaun
+                const hasNilaiKompaun = Math.random() < 0.6;
+                const randomNilaiKompaun = hasNilaiKompaun ? (Math.random() * 500 + 50).toFixed(2) : '0.00';
+                
+                const borang = {
+                    bilangan: i,
+                    tarikhKejadian: borangDate.toISOString().split('T')[0],
+                    namaAgent: selectedAgent,
+                    noBorang: `B/${targetYear}/${String(i).padStart(3, '0')}`,
+                    jenisPindaan: randomJenis,
+                    nilaiKompaun: randomNilaiKompaun,
+                    noRujukanKompaun: `K/${targetYear}/${String(i).padStart(3, '0')}`,
+                    statusBayaran: randomStatus || 'Tidak Dinyatakan',
+                    namaPegawaiKanan: randomPegawai,
+                    tarikhDicipta: new Date(Date.now() - (i * 86400000)).toISOString()
+                };
+                
+                sampleData.push(borang);
+                
+                // Add to suggestions
+                if (!agentSuggestions.includes(selectedAgent)) {
+                    agentSuggestions.push(selectedAgent);
+                }
+                if (!pindaanSuggestions.includes(randomJenis)) {
+                    pindaanSuggestions.push(randomJenis);
+                }
+            }
+            
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(sampleData));
+            saveSuggestions();
+            loadData();
+            renderTable();
+            updateStats();
+            updateAgentList();
+            updateBilanganField();
+            populateAgentFilter();
+            populateMonthFilter();
+        }
+    </script>
+</body>
+</html>
+
